@@ -6,7 +6,7 @@ export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
   const [cartItems, setCartItems] = useState({}); 
-  const url = "https://food-del-backend-lziq.onrender.com";
+  const url = import.meta.env.VITE_API_URL || "http://localhost:4000";
   const [token, setToken] = useState("");
   const [food_list, setFoodList] = useState([]);
 
@@ -42,9 +42,12 @@ const StoreContextProvider = (props) => {
   //   }
   // };
 
-   const removeFromCart = (itemId) => {
-     setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }));
-   };
+  const removeFromCart = async (itemId) => {
+    setCartItems((prev) => ({ ...prev, [itemId]: Math.max((prev[itemId] || 0) - 1, 0) }));
+    if (token) {
+      await axios.post(url + "/api/cart/remove", { itemId }, { headers: { token } });
+    }
+  };
 
   // // Corrected removeFromCart function
   // const removeFromCart = (itemId) => {
@@ -68,24 +71,37 @@ const StoreContextProvider = (props) => {
     for (const item in cartItems) {
       if (cartItems[item] > 0) {
         let itemInfo = food_list.find((product) => product._id === item);
-        totalAmount += itemInfo.price * cartItems[item];
+        if (itemInfo) totalAmount += itemInfo.price * cartItems[item];
       }
     }
     return totalAmount;
   };
 
   const fetchFoodList = async () => {
-    const response = await axios.get(url + "/api/food/list");
-    setFoodList(response.data.data);
-    console.log(response.data);
+    try {
+      const response = await axios.get(url + "/api/food/list");
+      if (response.data.success) setFoodList(response.data.data);
+    } catch (error) {
+      console.error("Could not load food list:", error.message);
+    }
   };
   const loadCardData = async (token) => {
-    const response = await axios.post(
-      url + "/api/cart/get",
-      {},
-      { headers: { token } }
-    );
-    setCartItems(response.data.cartData);
+    try {
+      const response = await axios.post(
+        url + "/api/cart/get",
+        {},
+        { headers: { token } }
+      );
+      if (response.data.success) {
+        setCartItems(response.data.cartData);
+      } else {
+        // expired / invalid token -> log out
+        localStorage.removeItem("token");
+        setToken("");
+      }
+    } catch (error) {
+      console.error("Could not load cart:", error.message);
+    }
   };
 
   useEffect(() => {

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import axios from "axios";
 import "./Add.css";
 import { assets } from "../../assets/assets";
-import App from "../../App";
 import { toast } from "react-toastify";
 
 const Add = ({url}) => {
@@ -28,58 +27,23 @@ const Add = ({url}) => {
     formData.append("price", Number(data.price));
     formData.append("category", data.category);
     formData.append("image", image);
-   
-      const response = await axios.post(`${url}/api/food/add`, formData);
-         console.log(response.data.message);
-        //   toast.success(response.data.message='Food added')
-      if (response.data.success) {
-        setData({
-          name: "",
-          description: "",
-          price: "",
-          category: "Salad",
-        });
-        setImage(false);
-        toast.success((response.data.message = "Food added"));
-
-      } else {
-        console.log("Server Error:", response.data.message);
-            toast.error(response.data.message);
-
-      }
-
-    // try {
-    //   const response = await axios.post(`${url}/api/food/add`, formData);
-
-    //   if (response.data.success) {
-    //     toast.success(response.data.message);
-    //     // ... success logic
-    //   } else {
-    //     // This handles cases where the server sends a successful status (e.g., 200)
-    //     // but the 'success' property is false
-    //     toast.error(response.data.message);
-    //   }
-    // } catch (error) {
-    //   // Check if the error object has a response from the server
-    //   if (error.response) {
-    //     // The request was made and the server responded with a status code
-    //     // that falls out of the range of 2xx
-    //     toast.error(error.response.data.message);
-    //   } else if (error.request) {
-    //     // The request was made but no response was received
-    //     // `error.request` is an instance of XMLHttpRequest in the browser
-    //     toast.error(
-    //       "Network error: No response from the server. Please check your connection."
-    //     );
-    //   } else {
-    //     // Something happened in setting up the request that triggered an error
-    //     toast.error("An unexpected error occurred. Please try again.");
-    //     console.error("Error", error.message);
-    //   }
-    // }
+      if (!image) {
+      toast.error("Please choose an image");
+      return;
     }
-  
-
+    try {
+      const response = await axios.post(`${url}/api/food/add`, formData);
+      if (response.data.success) {
+        setData({ name: "", description: "", price: "", category: "Salad" });
+        setImage(false);
+        toast.success("Food added");
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Cannot reach the server");
+    }
+  };
 
   return (
     <div className="add">
@@ -125,13 +89,13 @@ const Add = ({url}) => {
         <div className="add-category-price">
           <div className="add-category flex-col">
             <p>Product category</p>
-            <select onChange={onChangeHandler} name="category" id="">
+            <select onChange={onChangeHandler} value={data.category} name="category" id="">
               <option value="Salad">Salad</option>
               <option value="Rolls">Rolls</option>
-              <option value="Desert">Desert</option>
+              <option value="Deserts">Deserts</option>
               <option value="Sandwich">Sandwich</option>
               <option value="Cake">Cake</option>
-              <option value="pure Veg">Pure Veg</option>
+              <option value="Pure Veg">Pure Veg</option>
               <option value="Pasta">Pasta</option>
               <option value="Noodles">Noodles</option>
             </select>
