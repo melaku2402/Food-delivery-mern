@@ -5,6 +5,7 @@ import {assets} from '../../assets/assets'
 import { useState } from 'react'
 import { Link, useNavigate,  } from 'react-router-dom'
 import { StoreContext } from '../../Context/StoreContext'
+import logo from '../../assets/logo.png'
 import  axios  from 'axios'
 const Navbar = ({setShowLogin}) => {
   const [menu, setMenu] = useState("home");
@@ -25,7 +26,7 @@ const Navbar = ({setShowLogin}) => {
   return (
     <div className="navbar">
       <Link to="/">
-        <img src={logo2} className="logo" />
+        <img src={logo} className="logo" />
       </Link>
       <ul className="navbar-menu">
         <Link
