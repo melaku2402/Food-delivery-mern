@@ -1,62 +1,176 @@
-.footer{
-  color:#d9d9d9;
-  background-color: #323232;
+.footer {
+  --footer-ink: var(--ink, #1d1d1d);
+  --footer-accent: var(--accent, #ff6347);
+  --footer-ease: var(--ease, cubic-bezier(0.22, 1, 0.36, 1));
+
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 20px;
-  padding: 20px 8vw;
-  padding-top: 80px;
-  margin-top: 100px;
+  margin-top: 96px;
+  padding: 72px 0 24px;
+  background: var(--footer-ink);
+  color: #d9d9d9;
 }
-.footer-content{
-    width: 100%;
-    display: grid;
-    grid-template-columns:2fr 1fr 1fr;
-    gap: 80px;
-}
-.footer-content-left, .footer-content-center,
- .footer-content-right {
-display: flex;
-flex-direction: column;
-align-items: start;
-gap: 20px;
 
+/* ---- grid: brand | company | get in touch (widest) ---- */
+.footer-content {
+  display: grid;
+  grid-template-columns: 1.5fr 0.8fr 1.7fr;
+  gap: clamp(28px, 5vw, 72px);
+  width: min(92%, 1240px);
 }
-.footer-content-left li,.footer-content-center li, .footer-content-right li{
-   list-style: none;
-   margin-bottom: 10px; 
-   cursor: pointer;
+.footer-content-left,
+.footer-content-center,
+.footer-content-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  min-width: 0;
 }
-.footer-content-center h2, .footer-content-right h2{
-  color: white;
-  
+.footer-content-left p {
+  max-width: 44ch;
+  line-height: 1.6;
 }
-.footer-social-icon img{
-    width: 40px;
-    margin-right: 15px;
+.footer-logo {
+  height: 34px;
+  width: auto;
 }
-.footer hr{
-width: 100%;
-padding: 2px;
-margin: 20px 0px;
-background-color: gray;
-border: none;
+.footer h3 {
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
-@media (max-width:1050px) {
-    .footer-content{
-        display: flex;
-        flex-direction: column;
-        gap: 35px;
-    }
-    .footer-copyright{
-        text-align: center;
-    }
+
+/* ---- lists and links ---- */
+.footer ul {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
-/* @media (min-width:750px) {
-    .footer-content{
-        display: flex;
-        flex-direction:row;
-        gap: 35px;
-    }
-} */
+.footer address {
+  font-style: normal;
+}
+.footer-link {
+  display: inline-block;
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease, transform 0.25s var(--footer-ease);
+}
+.footer-link:hover {
+  color: var(--footer-accent);
+  transform: translateX(4px);
+}
+
+/* contact rows: icon + text */
+.footer-contact {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.footer-contact-icon {
+  flex: none;
+  margin-top: 3px;
+  color: var(--footer-accent);
+}
+
+/* ---- social icons ---- */
+.footer .footer-social-icon {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.footer-social-icon a {
+  display: block;
+  transition: transform 0.3s var(--footer-ease);
+}
+.footer-social-icon a:hover {
+  transform: translateY(-4px) scale(1.08);
+}
+.footer-social-icon img {
+  display: block;
+  width: 40px;
+  height: 40px;
+}
+
+/* ---- bottom bar ---- */
+.footer hr {
+  width: min(92%, 1240px);
+  height: 1px;
+  margin: 20px 0 0;
+  border: none;
+  background: rgba(255, 255, 255, 0.18);
+}
+.footer-copyright {
+  padding: 0 16px;
+  font-size: 0.9rem;
+  color: #b5b5b5;
+  text-align: center;
+}
+
+/* ---- keyboard focus ---- */
+.footer a:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ---- tablet: brand on top, Company + Get in touch side by side ---- */
+@media (max-width: 860px) {
+  .footer {
+    margin-top: 72px;
+    padding-top: 56px;
+  }
+  .footer-content {
+    grid-template-columns: 0.8fr 1.5fr;
+  }
+  .footer-content-left {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---- phone: still side by side, smaller text and tighter gaps ---- */
+@media (max-width: 520px) {
+  .footer {
+    margin-top: 56px;
+    padding: 44px 0 20px;
+  }
+  .footer-content {
+    grid-template-columns: 0.8fr 1.3fr;
+    gap: 28px 20px;
+  }
+  .footer h3 {
+    font-size: 1.05rem;
+  }
+  .footer-content-center,
+  .footer-content-right {
+    gap: 14px;
+    font-size: 0.92rem;
+  }
+}
+
+/* ---- very small phones: stack so nothing gets squeezed ---- */
+@media (max-width: 340px) {
+  .footer-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- no motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .footer-link,
+  .footer-social-icon a {
+    transition: none;
+  }
+  .footer-link:hover,
+  .footer-social-icon a:hover {
+    transform: none;
+  }
+}
