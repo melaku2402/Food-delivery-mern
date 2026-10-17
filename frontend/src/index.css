@@ -77,6 +77,88 @@ button {
   margin: 0 auto;
 }
 
+/* ------------------------------------------------------------------
+   Shared building blocks used by the Cart, Checkout, Orders and Login
+------------------------------------------------------------------ */
+.page {
+  padding: 36px 0 0;
+  animation: fadeIn 0.45s ease both;
+}
+.page-title {
+  font-size: clamp(1.8rem, 3.4vw, 2.7rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+.page-sub {
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+.card {
+  background: var(--paper);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm), 0 0 0 1px var(--line);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0.9em 1.7em;
+  border: none;
+  border-radius: 999px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  transition: transform 0.25s var(--ease), background-color 0.25s ease,
+    box-shadow 0.25s ease, color 0.25s ease;
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #1d1d1d;
+  box-shadow: 0 8px 22px rgba(255, 99, 71, 0.3);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--ink);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(50, 50, 50, 0.3);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--accent-tint);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+  color: var(--accent-deep);
+  transform: translateY(-2px);
+}
+
+.spinner-sm {
+  width: 1.1em;
+  height: 1.1em;
+  border: 2.5px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
