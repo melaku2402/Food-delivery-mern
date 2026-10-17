@@ -10,13 +10,12 @@ const Navbar = ({ setShowLogin }) => {
   const [menu, setMenu] = useState("home");
   const [open, setOpen] = useState(false); // mobile menu
   const [searchTerm, setSearchTerm] = useState("");
-  const { getTotalCartAmount, token, setToken, url, setSearchResults } =
+  const { getTotalCartAmount, token, logout: signOut, url, setSearchResults } =
     useContext(StoreContext);
   const navigate = useNavigate();
 
   const logout = () => {
-    localStorage.removeItem("token");
-    setToken("");
+    signOut(); // clears the token and the cart on screen
     navigate("/");
   };
 

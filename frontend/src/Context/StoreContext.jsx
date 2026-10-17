@@ -81,6 +81,13 @@ const StoreContextProvider = (props) => {
     }
   };
 
+  // sign out: forget the token and the cart on screen
+  const logout = () => {
+    localStorage.removeItem("token");
+    setToken("");
+    setCartItems({});
+  };
+
   const loadCardData = async (savedToken) => {
     try {
       const response = await axios.post(
@@ -89,15 +96,34 @@ const StoreContextProvider = (props) => {
         authHeaders(savedToken)
       );
       if (response.data.success) {
-        setCartItems(response.data.cartData);
+        setCartItems(response.data.cartData || {});
       } else {
-        // expired or invalid token: sign the user out
-        localStorage.removeItem("token");
-        setToken("");
+        logout(); // token no longer valid
       }
     } catch (error) {
-      console.error("Could not load cart:", error.message);
+      // the server answers 401 for an expired or invalid token
+      if (error.response?.status === 401) logout();
+      else console.error("Could not load cart:", error.message);
     }
+  };
+
+  // called by the sign-in popup after the server accepted the login / sign-up
+  const login = async (newToken) => {
+    localStorage.setItem("token", newToken);
+    setToken(newToken);
+    // items added while signed out are saved to the account, then the saved cart is loaded
+    const guest = Object.entries(cartItems).filter(([, qty]) => qty > 0);
+    for (const [itemId, qty] of guest) {
+      for (let i = 0; i < qty; i++) {
+        try {
+          await axios.post(url + "/api/cart/add", { itemId }, authHeaders(newToken));
+        } catch (error) {
+          console.error("Could not save cart item:", error.message);
+          break;
+        }
+      }
+    }
+    await loadCardData(newToken);
   };
 
   useEffect(() => {
@@ -126,6 +152,8 @@ const StoreContextProvider = (props) => {
     url,
     token,
     setToken,
+    login,
+    logout,
     setFoodList,
     searchResults,
     setSearchResults,

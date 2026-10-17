@@ -19,7 +19,7 @@ if (process.env.JWT_SECRET.length < 32) {
 
 const app = express();
 const port = process.env.PORT || 4000;
-
+app.use(cors());
 // Render and Vercel put one proxy in front of the app. Without this, every visitor
 // looks like the same IP and the login rate limit would block everyone together.
 app.set("trust proxy", 1);
@@ -27,7 +27,7 @@ app.disable("x-powered-by");
 
 // middleware
 app.use(express.json({ limit: "100kb" }));
-app.use(cors());
+
 
 // DB connection
 connectDB();
