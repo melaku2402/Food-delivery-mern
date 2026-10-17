@@ -1,23 +1,44 @@
-.app-download{
-    margin: auto auto;
-    margin-top: 100px;
-    font-size: max(3vw,20px);
-    text-align: center;
-    font-weight: center;
+.app-download {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px 48px;
+  margin-top: 96px;
+  padding: clamp(32px, 5vw, 64px);
+  border-radius: 32px;
+  background: var(--ink);
+  color: #fff;
 }
-.app-download-platforms{
-    display: flex;
-    justify-content: center;
-    gap: max(2vw,10px);
-    margin-top: 40px;
+.app-download h2 {
+  font-size: clamp(1.6rem, 3.2vw, 2.6rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
 }
-.app-download-platforms img{
-    width: max(30vw,120px);
-    max-width: 180px;
-    transition: 0.5s;
-    cursor: pointer;
+.app-download-platforms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.app-download-platforms img {
+  width: clamp(130px, 14vw, 180px);
+  cursor: pointer;
+  border-radius: 10px;
+  transition: transform 0.35s var(--ease), box-shadow 0.35s ease;
+}
+.app-download-platforms img:hover {
+  transform: translateY(-5px) scale(1.04);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.4);
 }
 
-.app-download-platforms img:hover{
-   transform: scale(1.09);
+@media (max-width: 760px) {
+  .app-download {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 72px;
+    border-radius: 24px;
+  }
+  .app-download h2 br {
+    display: none;
+  }
 }

@@ -1,57 +1,63 @@
-import React from 'react'
-import './FoodItem.css'
-import { assets } from '../../assets/assets';
-// import { useState } from 'react';
-import { useContext } from 'react';
-import { StoreContext } from '../../Context/StoreContext';
+import React, { useContext } from "react";
+import "./FoodItem.css";
+import { assets } from "../../assets/assets";
+import { StoreContext } from "../../Context/StoreContext";
 
 const FoodItem = ({ id, name, price, description, image }) => {
+  const { cartItems, addToCart, removeFromCart, url } =
+    useContext(StoreContext);
+  const count = cartItems[id] || 0;
 
-    // const [itemCount, setItemCount] = useState(0)
-    const { cartItems, setCartItems,addToCart,url,removeFromCart} = useContext(StoreContext)
   return (
-    <div className="food-item">
+    <article className="food-item">
       <div className="food-item-img-container">
-        <img src={ url +"/images/"+image} alt="" className="food-item-image" />
-        {
-          //  !itemCount
-          !cartItems[id] ? (
-            //  setItemCount instead of this fun use addToCart fun
-            <img
-              className="add"
+        <img
+          src={url + "/images/" + image}
+          alt={name}
+          className="food-item-image"
+          loading="lazy"
+        />
+
+        {count === 0 ? (
+          <button
+            type="button"
+            className="food-item-add"
+            aria-label={"Add " + name + " to cart"}
+            onClick={() => addToCart(id)}
+          >
+            <img src={assets.add_icon_white} alt="" />
+          </button>
+        ) : (
+          <div className="food-item-counter">
+            <button
+              type="button"
+              aria-label={"Remove one " + name}
+              onClick={() => removeFromCart(id)}
+            >
+              <img src={assets.remove_icon_red} alt="" />
+            </button>
+            <p aria-live="polite">{count}</p>
+            <button
+              type="button"
+              aria-label={"Add one more " + name}
               onClick={() => addToCart(id)}
-              src={assets.add_icon_white}
-            />
-          ) : (
-            <div className="food-item-counter">
-              {/* instead of setItemCount((prev) => prev - 1) use removeFromCart fun  */}
-              <img
-                onClick={() => removeFromCart(id)}
-                src={assets.remove_icon_red}
-                alt=""
-             />
-              {/* <p>{itemCount}</p> instead of this */}
-              <p>{cartItems[id]}</p>
-              {/* setItemCount((prev) => prev + 1) instead of this use addtocart */}
-              <img
-                onClick={() => addToCart(id)}
-                src={assets.add_icon_green}
-                alt=""
-              />
-            </div>
-          )
-        }
+            >
+              <img src={assets.add_icon_green} alt="" />
+            </button>
+          </div>
+        )}
       </div>
+
       <div className="food-item-info">
         <div className="food-item-name-rating">
-          <p>{name}</p>
+          <h3>{name}</h3>
           <img src={assets.rating_starts} alt="" />
         </div>
         <p className="food-item-desc">{description}</p>
         <p className="food-item-price">${price}</p>
       </div>
-    </div>
+    </article>
   );
 };
 
-export default FoodItem
+export default FoodItem;
