@@ -1,85 +1,108 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap');
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
+/* ------------------------------------------------------------------
+   Design tokens: one palette for the whole app.
+   Change a colour here and every component follows.
+------------------------------------------------------------------ */
+:root {
+  --ink: #323232;          /* navbar text, hero panel, footer */
+  --ink-soft: #4a4a4a;
+  --accent: #ff6347;       /* "tomato": buttons, highlights */
+  --accent-deep: #c8391a;  /* accent for text on white or tint (passes WCAG AA) */
+  --accent-tint: #fff1ed;  /* soft accent background */
+  --paper: #ffffff;
+  --text: #262626;
+  --muted: #6b6b6b;
+  --line: #ececec;
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  /* background-color: #1a1a1a; */
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --shadow-sm: 0 1px 2px rgba(50, 50, 50, 0.06), 0 6px 18px rgba(50, 50, 50, 0.07);
+  --shadow-lg: 0 2px 4px rgba(50, 50, 50, 0.06), 0 22px 44px rgba(255, 99, 71, 0.22);
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --font: 'Bricolage Grotesque', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-} */
-
-*{
+/* Reset (this block was being ignored before because of a stray comment marker) */
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  /* font-family: Outfit; */
+}
+
+html {
   scroll-behavior: smooth;
+  scroll-padding-top: 96px; /* keeps anchors clear of the sticky navbar */
 }
-body{
+
+body {
   min-height: 100vh;
-
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--paper);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
-a{
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
   text-decoration: none;
   color: inherit;
 }
-.App{
-  width: 90%;
-  margin: auto;
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
-@keyframes fedeIn{
-0%{
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.App {
+  width: min(92%, 1240px);
+  margin: 0 auto;
+}
+
+@keyframes fadeIn {
+  from {
     opacity: 0;
-}
-100%{
+  }
+  to {
     opacity: 1;
+  }
 }
+/* kept for any component still using the old misspelled name */
+@keyframes fedeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
