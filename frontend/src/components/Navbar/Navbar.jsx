@@ -10,7 +10,7 @@ const Navbar = ({ setShowLogin }) => {
   const [menu, setMenu] = useState("home");
   const [open, setOpen] = useState(false); // mobile menu
   const [searchTerm, setSearchTerm] = useState("");
-  const { getTotalCartAmount, token, setToken, url, setFoodList } =
+  const { getTotalCartAmount, token, setToken, url, setSearchResults } =
     useContext(StoreContext);
   const navigate = useNavigate();
 
@@ -30,10 +30,12 @@ const Navbar = ({ setShowLogin }) => {
     e.preventDefault();
     const query = searchTerm.trim();
     try {
-      const res = query
-        ? await axios.post(url + "/api/food/search", { query })
-        : await axios.get(url + "/api/food/list");
-      if (res.data.success) setFoodList(res.data.data);
+      if (!query) {
+        setSearchResults(null); // empty search shows the whole menu again
+      } else {
+        const res = await axios.post(url + "/api/food/search", { query });
+        if (res.data.success) setSearchResults(res.data.data);
+      }
     } catch (error) {
       console.error("Search failed:", error.message);
     }

@@ -4,14 +4,24 @@ import { StoreContext } from "../../Context/StoreContext";
 import FoodItem from "../FoodItem/FoodItem";
 
 const FoodDisplay = ({ category }) => {
-  const { food_list } = useContext(StoreContext);
-  const visible = food_list.filter(
+  const { food_list, searchResults, setSearchResults } = useContext(StoreContext);
+  const searching = searchResults !== null;
+  const visible = (searching ? searchResults : food_list).filter(
     (item) => category === "All" || category === item.category
   );
 
   return (
     <section className="food-display" id="food-display">
-      <h2>Top dishes near you</h2>
+      <h2>{searching ? "Search results" : "Top dishes near you"}</h2>
+      {searching && (
+        <button
+          type="button"
+          className="food-display-clear"
+          onClick={() => setSearchResults(null)}
+        >
+          Clear search ✕
+        </button>
+      )}
 
       {visible.length === 0 ? (
         <p className="food-display-empty">

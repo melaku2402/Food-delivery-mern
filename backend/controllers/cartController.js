@@ -1,22 +1,14 @@
 import userModel from "../models/userModel.js";
 
-// add to cart to user cart
-const addToCart = async (req, res) => {
-  try {
-    let userData = await userModel.findOne({ _id: req.body.userId });
-    // let userData = await userModel.findById(req.body.userId ); another method
-    // console.log(req.body.userId);
-    // console.log(userData);
+// item ids are Mongo ObjectIds; anything else could be used to write odd keys
+const validId = (id) => typeof id === "string" && /^[a-f\d]{24}$/i.test(id);
 
-    let cartData = await userData.cartData;
-    // console.log(cartData);
-    // console.log(cartDate);
-    if (!cartData[req.body.itemId]) {
-      cartData[req.body.itemId] = 1;
-    } else {
-      cartData[req.body.itemId] += 1;
-    }
-    await userModel.findByIdAndUpdate(req.body.userId, { cartData });
+// add one unit (atomic, so quick repeated clicks never lose a count)
+const addToCart = async (req, res) => {
+  const { userId, itemId } = req.body;
+  if (!validId(itemId)) return res.json({ success: false, message: "Invalid item" });
+  try {
+    await userModel.findByIdAndUpdate(userId, { $inc: { [`cartData.${itemId}`]: 1 } });
     res.json({ success: true, message: "Added To Cart" });
   } catch (error) {
     console.log(error);
@@ -24,37 +16,41 @@ const addToCart = async (req, res) => {
   }
 };
 
-// //remove items to from cart
+// remove one unit, or the whole line when `all` is true
 const removeFromCart = async (req, res) => {
+  const { userId, itemId, all } = req.body;
+  if (!validId(itemId)) return res.json({ success: false, message: "Invalid item" });
   try {
-    let userData = await userModel.findById( req.body.userId );
-    let cartData = await userData.cartData;
-
-    if ( cartData[req.body.itemId ] >0) {
-      cartData[req.body.itemId] -= 1;
-       console.log(cartData);
+    if (all) {
+      await userModel.findByIdAndUpdate(userId, { $unset: { [`cartData.${itemId}`]: "" } });
+    } else {
+      // only decrement while the count is above zero, then drop lines that hit zero
+      await userModel.updateOne(
+        { _id: userId, [`cartData.${itemId}`]: { $gt: 0 } },
+        { $inc: { [`cartData.${itemId}`]: -1 } }
+      );
+      await userModel.updateOne(
+        { _id: userId, [`cartData.${itemId}`]: { $lte: 0 } },
+        { $unset: { [`cartData.${itemId}`]: "" } }
+      );
     }
-    await userModel.findByIdAndUpdate(req.body.userId, { cartData });
     res.json({ success: true, message: "Removed from Cart" });
-
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: "Error not Removed" });
   }
-  
 };
 
-//fetch user cart data
+// fetch the user's cart
 const getCart = async (req, res) => {
-   try {
-    let userData = await userModel.findById(req.body.userId );
-    let cartData = await userData.cartData;
-    res.json({ success: true, cartData});
-
+  try {
+    const userData = await userModel.findById(req.body.userId);
+    if (!userData) return res.json({ success: false, message: "User not found" });
+    res.json({ success: true, cartData: userData.cartData || {} });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: "Error not get" });
-  } 
+  }
 };
 
 export { addToCart, removeFromCart, getCart };

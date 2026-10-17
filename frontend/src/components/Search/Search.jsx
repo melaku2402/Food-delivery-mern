@@ -8,7 +8,7 @@ import { assets } from "../../assets/assets";
 
 const Search = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const { url, setFoodList } = useContext(StoreContext);
+  const { url, setSearchResults } = useContext(StoreContext);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -19,7 +19,7 @@ const Search = () => {
       console.log(response.data);
       
       if (response.data.success) {
-        setFoodList(response.data.data);
+        setSearchResults(response.data.data);
       }
       console.log(searchTerm);
       
