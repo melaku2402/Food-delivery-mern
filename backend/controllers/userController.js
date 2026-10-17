@@ -1,96 +1,141 @@
-
 import userModel from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import validator from "validator";
 
-// Function to create a JWT token
-// It's good practice to define this once and reuse it.
-const createToken = (id) => {
-  // Adding an expiration date is important for security
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "1d", // Token expires in 1 day
+// 10 is the OWASP minimum and keeps login quick on small free-tier servers.
+const SALT_ROUNDS = 10;
+
+// Compared against when an email isn't found, so a wrong email and a wrong
+// password take about the same time and can't be told apart.
+const DUMMY_HASH = bcrypt.hashSync("not-a-real-password", SALT_ROUNDS);
+
+const NAME_RE = /^[\p{L}\p{M}][\p{L}\p{M}\s'.-]*$/u; // any language (Amharic, English, ...)
+
+const createToken = (id) =>
+  jwt.sign({ id: String(id) }, process.env.JWT_SECRET, {
+    algorithm: "HS256",
+    expiresIn: process.env.JWT_EXPIRES_IN || "1d",
   });
+
+const fail = (res, status, message, errors) =>
+  res.status(status).json({ success: false, message, ...(errors && { errors }) });
+
+// Only plain strings are accepted. An object like { "$ne": null } in the email
+// field would otherwise reach the database query (NoSQL injection).
+const readEmail = (value) =>
+  typeof value === "string" ? value.trim().toLowerCase() : "";
+const readName = (value) =>
+  typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
+
+// Emails are stored lowercase. Accounts created before that rule may have capital
+// letters, so if there is no exact match, look once more ignoring case.
+const findByEmail = async (email) => {
+  const exact = await userModel.findOne({ email }).select("+password");
+  if (exact) return exact;
+  return userModel
+    .findOne({ email })
+    .collation({ locale: "en", strength: 2 })
+    .select("+password");
 };
+
+const publicUser = (name, email) => ({ name, email });
 
 // Login user
 const loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  const email = readEmail(req.body?.email);
+  const password = req.body?.password;
+
+  const errors = {};
+  if (!email) errors.email = "Enter your email address.";
+  if (typeof password !== "string" || !password)
+    errors.password = "Enter your password.";
+  if (Object.keys(errors).length) {
+    return fail(res, 400, "Please fill in all fields.", errors);
+  }
+
   try {
-    const user = await userModel.findOne({ email });
-       
-    if (!user) {
-      return res.json({ success: false, message: "User doesn't exist" });
+    const user = await findByEmail(email);
+
+    // Always run the comparison, even for an unknown email (see DUMMY_HASH).
+    const isMatch = await bcrypt.compare(
+      password,
+      user?.password || DUMMY_HASH
+    );
+
+    // One message for both cases, so nobody can check which emails are registered.
+    if (!user || !isMatch) {
+      return fail(res, 401, "Incorrect email or password.");
     }
 
-    // Compare the provided password with the hashed password in the database
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      // Return an error message if the passwords don't match
-      return res.json({ success: false, message: "Invalid credentials" });
+    // Older accounts may have a capitalised email. Save it lowercase now.
+    if (user.email !== email) {
+      await userModel.updateOne({ _id: user._id }, { email }).catch(() => {});
     }
 
-    // If login is successful, create a token
-    const token = createToken(user._id);
-
-    // Return success and the token
-    return res.json({ success: true, token });
+    return res.json({
+      success: true,
+      token: createToken(user._id),
+      user: publicUser(user.name, email),
+    });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error" });
+    console.error("Login failed:", error);
+    return fail(res, 500, "Something went wrong. Please try again.");
   }
 };
 
 // Register a new user
 const registerUser = async (req, res) => {
-  const { name, password, email } = req.body;
-  console.log(name, password, email);
+  const name = readName(req.body?.name);
+  const email = readEmail(req.body?.email);
+  const password = req.body?.password;
 
-  try {
-    const exists = await userModel.findOne({ email });
-    if (exists) {
-      return res.json({ success: false, message: "User already exists" });
-    }
+  const errors = {};
 
-    // Validate email format
-    if (!validator.isEmail(email)) {
-      return res.json({
-        success: false,
-        message: "Please enter a valid email",
-      });
-    }
+  if (!name) errors.name = "Enter your name.";
+  else if (name.length < 2 || name.length > 50)
+    errors.name = "Name must be 2 to 50 characters.";
+  else if (!NAME_RE.test(name))
+    errors.name = "Use letters only (spaces, - and ' are allowed).";
 
-    // Validate password length
-    if (password.length < 8) {
-      return res.json({
-        success: false,
-        message: "Please enter a strong password (at least 8 characters)",
-      });
-    }
+  if (!email) errors.email = "Enter your email address.";
+  else if (email.length > 254 || !validator.isEmail(email))
+    errors.email = "Enter a valid email address.";
 
-    // Hashing user password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+  if (typeof password !== "string" || !password)
+    errors.password = "Enter a password.";
+  else if (password.length < 8)
+    errors.password = "Use at least 8 characters.";
+  // bcrypt only reads the first 72 bytes, so refuse anything longer
+  else if (Buffer.byteLength(password) > 72)
+    errors.password = "Password is too long (72 bytes at most).";
 
-    // Create a new user instance
-    const newUser = new userModel({
-      name: name,
-      email: email,
-      password: hashedPassword,
+  if (Object.keys(errors).length) {
+    return fail(res, 400, "Please fix the highlighted fields.", errors);
+  }
+
+  const taken = () =>
+    fail(res, 409, "An account with this email already exists. Try logging in.", {
+      email: "This email is already registered.",
     });
 
-    // Save the new user to the database
-    const user = await newUser.save();
+  try {
+    if (await findByEmail(email)) return taken();
 
-    // Create a token for the new user
-    const token = createToken(user._id);
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    const user = await userModel.create({ name, email, password: hashedPassword });
 
-    // Send a successful response with the token
-    res.json({ success: true, token }); // Renamed 'message' to 'token' for consistency
+    return res.status(201).json({
+      success: true,
+      token: createToken(user._id),
+      user: publicUser(user.name, email),
+    });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error" });
+    // Two sign-ups with the same email at the same moment: the database's
+    // unique index lets only one through.
+    if (error?.code === 11000) return taken();
+    console.error("Register failed:", error);
+    return fail(res, 500, "Something went wrong. Please try again.");
   }
 };
 
