@@ -197,8 +197,13 @@ const LoginPopup = ({ setShowLogin }) => {
         };
         setErrors(next);
         focusFirstError(next);
-      } else {
+      } else if (error.request) {
+        // the request left the browser but nothing came back: offline, wrong API address, or server down
         setErrors({ form: "Can't reach the server. Check your connection and try again." });
+      } else {
+        // a bug in the page itself, not a network problem
+        console.error("Sign-in failed inside the app:", error);
+        setErrors({ form: "Something went wrong in the app. Please refresh and try again." });
       }
     } finally {
       clearTimeout(slowTimer);
