@@ -48,7 +48,7 @@ const MyOrder = () => {
                 <div className="orders-container">
                     {data.map((order, index) => {
                         return (
-                            <div key={index} className="order-card" style={{ "--i": index }}>
+                            <div key={order._id} className="order-card" style={{ "--i": index }}>
                                 <div className="order-card-left">
                                     <div className="order-media">
                                         <img src={assets.parcel_icon} alt="Parcel" />

@@ -12,8 +12,8 @@ const DUMMY_HASH = bcrypt.hashSync("not-a-real-password", SALT_ROUNDS);
 
 const NAME_RE = /^[\p{L}\p{M}][\p{L}\p{M}\s'.-]*$/u; // any language (Amharic, English, ...)
 
-const createToken = (id) =>
-  jwt.sign({ id: String(id) }, process.env.JWT_SECRET, {
+const createToken = (id, extra = {}) =>
+  jwt.sign({ id: String(id), ...extra }, process.env.JWT_SECRET, {
     algorithm: "HS256",
     expiresIn: process.env.JWT_EXPIRES_IN || "1d",
   });
@@ -139,4 +139,44 @@ const registerUser = async (req, res) => {
   }
 };
 
-export { loginUser, registerUser };
+// Admin login — credentials are stored in env vars, not the database.
+// Set ADMIN_EMAIL and ADMIN_PASSWORD in backend/.env.
+const adminLogin = async (req, res) => {
+  const email = readEmail(req.body?.email);
+  const password = req.body?.password;
+
+  const errors = {};
+  if (!email) errors.email = "Enter your email address.";
+  if (typeof password !== "string" || !password)
+    errors.password = "Enter your password.";
+  if (Object.keys(errors).length) {
+    return fail(res, 400, "Please fill in all fields.", errors);
+  }
+
+  try {
+    const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase().trim();
+    const adminPassword = process.env.ADMIN_PASSWORD || "";
+
+    if (!adminEmail || !adminPassword) {
+      return fail(res, 503, "Admin login is not configured on this server.");
+    }
+
+    // Constant-time check prevents timing attacks on the email comparison
+    const emailMatch = email === adminEmail;
+    const passMatch = await bcrypt.compare(password, adminPassword.startsWith("$2") ? adminPassword : await bcrypt.hash(adminPassword, SALT_ROUNDS));
+
+    if (!emailMatch || !passMatch) {
+      return fail(res, 401, "Incorrect email or password.");
+    }
+
+    return res.json({
+      success: true,
+      token: createToken("admin", { role: "admin" }),
+    });
+  } catch (error) {
+    console.error("Admin login failed:", error);
+    return fail(res, 500, "Something went wrong. Please try again.");
+  }
+};
+
+export { loginUser, registerUser, adminLogin };

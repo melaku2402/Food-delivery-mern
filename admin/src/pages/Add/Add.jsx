@@ -4,7 +4,7 @@ import "./Add.css";
 import { assets } from "../../assets/assets";
 import { toast } from "react-toastify";
 
-const Add = ({url}) => {
+const Add = ({url, token}) => {
   
   const [image, setImage] = useState(false);
   const [data, setData] = useState({
@@ -21,18 +21,20 @@ const Add = ({url}) => {
   //Checker useEffect(() => { console.log(data) }, [data])
   const onSubmitHandler = async (event) => {
     event.preventDefault();
+    if (!image) {
+      toast.error("Please choose an image");
+      return;
+    }
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("description", data.description);
     formData.append("price", Number(data.price));
     formData.append("category", data.category);
     formData.append("image", image);
-      if (!image) {
-      toast.error("Please choose an image");
-      return;
-    }
     try {
-      const response = await axios.post(`${url}/api/food/add`, formData);
+      const response = await axios.post(`${url}/api/food/add`, formData, {
+        headers: { token },
+      });
       if (response.data.success) {
         setData({ name: "", description: "", price: "", category: "Salad" });
         setImage(false);
@@ -105,7 +107,7 @@ const Add = ({url}) => {
             <input
               onChange={onChangeHandler}
               value={data.price}
-              type="Number"
+              type="number"
               name="price"
               placeholder="$20"
             />

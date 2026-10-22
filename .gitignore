@@ -1,0 +1,25 @@
+# Environments
+.env
+.env*.local
+*.env
+admin/.env
+backend/.env
+frontend/.env
+
+# Dependencies
+node_modules/
+admin/node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Production builds
+dist/
+build/
+
+# Logs & editor
+logs
+*.log
+.vscode/
+.idea/
+.DS_Store
+

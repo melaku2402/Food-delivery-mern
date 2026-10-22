@@ -3,10 +3,12 @@ import "./List.css";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const List = ({ url }) => {
+const List = ({ url, token }) => {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const authHeaders = { headers: { token } };
 
   const fetchList = async () => {
     try {
@@ -28,7 +30,7 @@ const List = ({ url }) => {
 
   const removeFood = async (foodId) => {
     try {
-      const response = await axios.post(`${url}/api/food/remove`, { id: foodId });
+      const response = await axios.post(`${url}/api/food/remove`, { id: foodId }, authHeaders);
       if (response.data.success) {
         toast.success("Food removed");
         await fetchList();
@@ -36,7 +38,7 @@ const List = ({ url }) => {
         toast.error(response.data.message || "Error");
       }
     } catch (err) {
-      toast.error("Cannot reach the server");
+      toast.error(err.response?.status === 401 ? "Admin session expired. Please log in again." : "Cannot reach the server");
     }
   };
 

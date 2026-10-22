@@ -1,6 +1,6 @@
 import express from "express";
 import rateLimit from "express-rate-limit";
-import { loginUser, registerUser } from "../controllers/userController.js";
+import { loginUser, registerUser, adminLogin } from "../controllers/userController.js";
 
 const userRouter = express.Router();
 
@@ -30,7 +30,15 @@ const registerLimiter = limiter({
   message: "Too many sign-up attempts. Please try again later.",
 });
 
+const adminLimiter = limiter({
+  minutes: 15,
+  limit: 10,
+  message: "Too many admin login attempts. Please try again in 15 minutes.",
+  skipSuccessfulRequests: true,
+});
+
 userRouter.post("/register", registerLimiter, registerUser);
 userRouter.post("/login", loginLimiter, loginUser);
+userRouter.post("/admin-login", adminLimiter, adminLogin);
 
 export default userRouter;
