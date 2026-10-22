@@ -3,23 +3,26 @@ import userModel from "../models/userModel.js";
 // item ids are Mongo ObjectIds; anything else could be used to write odd keys
 const validId = (id) => typeof id === "string" && /^[a-f\d]{24}$/i.test(id);
 
+const fail = (res, status, message) =>
+  res.status(status).json({ success: false, message });
+
 // add one unit (atomic, so quick repeated clicks never lose a count)
 const addToCart = async (req, res) => {
   const { userId, itemId } = req.body;
-  if (!validId(itemId)) return res.json({ success: false, message: "Invalid item" });
+  if (!validId(itemId)) return fail(res, 400, "Invalid item ID.");
   try {
     await userModel.findByIdAndUpdate(userId, { $inc: { [`cartData.${itemId}`]: 1 } });
-    res.json({ success: true, message: "Added To Cart" });
+    res.json({ success: true, message: "Added to cart." });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error not added" });
+    console.error("addToCart error:", error);
+    fail(res, 500, "Could not add item to cart.");
   }
 };
 
 // remove one unit, or the whole line when `all` is true
 const removeFromCart = async (req, res) => {
   const { userId, itemId, all } = req.body;
-  if (!validId(itemId)) return res.json({ success: false, message: "Invalid item" });
+  if (!validId(itemId)) return fail(res, 400, "Invalid item ID.");
   try {
     if (all) {
       await userModel.findByIdAndUpdate(userId, { $unset: { [`cartData.${itemId}`]: "" } });
@@ -34,22 +37,22 @@ const removeFromCart = async (req, res) => {
         { $unset: { [`cartData.${itemId}`]: "" } }
       );
     }
-    res.json({ success: true, message: "Removed from Cart" });
+    res.json({ success: true, message: "Cart updated." });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error not Removed" });
+    console.error("removeFromCart error:", error);
+    fail(res, 500, "Could not remove item from cart.");
   }
 };
 
 // fetch the user's cart
 const getCart = async (req, res) => {
   try {
-    const userData = await userModel.findById(req.body.userId);
-    if (!userData) return res.json({ success: false, message: "User not found" });
+    const userData = await userModel.findById(req.body.userId).lean();
+    if (!userData) return fail(res, 404, "User not found.");
     res.json({ success: true, cartData: userData.cartData || {} });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error not get" });
+    console.error("getCart error:", error);
+    fail(res, 500, "Could not fetch cart.");
   }
 };
 

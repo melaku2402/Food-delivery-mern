@@ -6,12 +6,13 @@ import { useEffect } from "react";
 import { assets } from "../../assets/assets";
 import "./Order.css";
 
-const Order = ({ url }) => {
+const Order = ({ url, token }) => {
   const [orders, setOrders] = useState([]);
+  const authHeaders = { headers: { token } };
 
   const fetchAllOrders = async () => {
     try {
-      const response = await axios.get(url + "/api/order/list");
+      const response = await axios.get(url + "/api/order/list", authHeaders);
       if (response.data.success) {
         setOrders(response.data.data);
       } else {
@@ -27,12 +28,11 @@ const Order = ({ url }) => {
   }, []);
 
   const statusHandler = async (event, orderId) => {
-    // console.log(event,orderId);
     try {
       const response = await axios.post(url + "/api/order/status", {
         orderId,
         status: event.target.value,
-      });
+      }, authHeaders);
       if (response.data.success) {
         await fetchAllOrders();
       }
@@ -78,7 +78,7 @@ const Order = ({ url }) => {
             <select
               onChange={(event) => statusHandler(event, order._id)}
               value={order.status}
-              id=""
+              aria-label="Order status"
             >
               <option value="Food Processing">Food Processing</option>
               <option value="Out for delivery">Out for delivery</option>

@@ -1,6 +1,7 @@
 import express from "express";
 import multer from "multer";
 import { addFood, listFood, removeFood, searchFood } from "../controllers/foodController.js";
+import adminAuth from "../middleware/adminAuth.js";
 
 const foodRouter = express.Router();
 
@@ -11,9 +12,12 @@ const upload = multer({
   fileFilter: (req, file, cb) => cb(null, file.mimetype.startsWith("image/")),
 });
 
-foodRouter.post("/add", upload.single("image"), addFood);
+// Public routes
 foodRouter.get("/list", listFood);
-foodRouter.post("/remove", removeFood);
 foodRouter.post("/search", searchFood);
+
+// Admin-only routes
+foodRouter.post("/add", adminAuth, upload.single("image"), addFood);
+foodRouter.post("/remove", adminAuth, removeFood);
 
 export default foodRouter;

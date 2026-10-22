@@ -5,7 +5,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const PlaceOrder = () => {
-  const { getTotalCartAmount, token, food_list, cartItems, url } = useContext(StoreContext);
+  const { getTotalCartAmount, token, food_list, cartItems, url, deliveryFee } = useContext(StoreContext);
   const [data, setData] = useState({
     firstName: "",
     lastName: "",
@@ -42,7 +42,7 @@ const PlaceOrder = () => {
     let orderData = {
       address: data,
       items: orderItems,
-      amount: getTotalCartAmount() + 2,
+      amount: getTotalCartAmount() + deliveryFee,
     };
 
     setLoading(true);
@@ -68,7 +68,7 @@ const PlaceOrder = () => {
     } else if (getTotalCartAmount() === 0) {
       navigate("/cart");
     }
-  }, [token]);
+  }, [token, getTotalCartAmount, navigate]);
 
   return (
     <div className="place-order-wrapper">
@@ -174,12 +174,12 @@ const PlaceOrder = () => {
               <hr />
               <div className="cart-total-details">
                 <p>Delivery Fee</p>
-                <p>${getTotalCartAmount() === 0 ? 0 : 2}.00</p>
+                <p>${getTotalCartAmount() === 0 ? 0 : deliveryFee}.00</p>
               </div>
               <hr />
               <div className="cart-total-details total-row">
                 <p>Total</p>
-                <p>${getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 2}.00</p>
+                <p>${getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + deliveryFee}.00</p>
               </div>
             </div>
             <button type="submit" className="place-order-btn" disabled={loading}>
